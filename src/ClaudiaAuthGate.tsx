@@ -28,7 +28,8 @@ export interface ClaudiaAuthGateProps {
   supabaseUrl: string;
   /** Logo, wordmark, whatever the project's own brand header is — rendered as-is. */
   brandHeader: ReactNode;
-  strap: string;
+  /** Omit if the brandHeader already renders its own strap internally (e.g. PETGI's Logo does). */
+  strap?: string;
   description: ReactNode;
   /** Optional small-print below the sign-in form, e.g. PETGI's diagnostic-framework disclaimer. */
   footnote?: ReactNode;
@@ -68,7 +69,7 @@ export default function ClaudiaAuthGate({ project, supabase, supabaseUrl, brandH
     <div className="auth">
       <div className="auth-card">
         {brandHeader}
-        <div className="strap" style={{ marginTop: '.35rem' }}>{strap}</div>
+        {strap && <div className="strap" style={{ marginTop: '.35rem' }}>{strap}</div>}
         <h1 style={{ marginTop: '1.4rem', fontSize: '1.45rem' }}>Sign in</h1>
         <p className="dim" style={{ fontSize: '.88rem' }}>{description}</p>
         {sent ? (
