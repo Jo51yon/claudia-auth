@@ -69,11 +69,16 @@ export default function ClaudiaAuthGate({ project, supabase, supabaseUrl, brandH
   }, [supabase]);
 
   useEffect(() => {
-    if (authMethodProp) return; // developer forced it -- do not override with a DB read
-    supabase.from('claudia_project_branding').select('auth_method').eq('project_slug', project).maybeSingle()
+    if (authMethodProp) return; // developer forced it -- do not override with a live read
+    // Not a direct .from('claudia_project_branding').select() -- that table's RLS only grants
+    // SELECT to 'authenticated', and this runs on the login screen itself, before sign-in, as
+    // 'anon'. Confirmed directly (a real anonymous REST call returned an empty result) rather
+    // than assumed. claudia_project_auth_method() is a narrow, SECURITY DEFINER RPC exposing
+    // only this one field to anonymous callers, not the whole branding row.
+    supabase.rpc('claudia_project_auth_method', { p_project_slug: project })
       .then(
-        ({ data }: { data: { auth_method?: string } | null }) => {
-          if (data?.auth_method === 'password' || data?.auth_method === 'magic_link') setAuthMethod(data.auth_method);
+        ({ data }: { data: string | null }) => {
+          if (data === 'password' || data === 'magic_link') setAuthMethod(data);
         },
         () => { /* stays on the safe 'magic_link' default */ },
       );

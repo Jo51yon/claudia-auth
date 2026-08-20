@@ -4,6 +4,20 @@ Semantic versioning: MAJOR = a prop, exported type, or default behaviour changed
 could break an existing consumer without any code change on their side. MINOR = additive only.
 Consuming projects should pin to a tag (`#v1.0.0`), never `#main`.
 
+## v1.1.1 — 2026-08-20
+
+Patch, found before any real consumer existed. v1.1.0's live auth_method read used a direct
+`.from('claudia_project_branding').select()` -- confirmed by a real anonymous HTTP call, not
+assumed, that this silently returns nothing: that table's RLS grants SELECT only to
+`authenticated`, and this read happens on the login screen itself, before sign-in, as `anon`.
+The admin-configurable setting would never have actually taken effect for a real user.
+
+Fixed with a new, narrow database function, `claudia_project_auth_method(project_slug)` --
+SECURITY DEFINER, exposes only this one field to anonymous callers rather than widening the
+whole branding table (display_name, colours, logo, footer_note) to anonymous reads. Verified
+live over real HTTP, anonymously, for two real projects (`rig-fixture` -> `"password"`,
+`petgi` -> `"magic_link"`) before wiring the component to call it.
+
 ## v1.1.0 — 2026-08-20
 
 Additive. Adds password as a real second sign-in method alongside magic link, driven by a
